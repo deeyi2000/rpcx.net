@@ -14,7 +14,7 @@ namespace rpcx.net.Client.ServiceDiscovery
         protected double _duration;
         protected Timer _watchTimer;
         protected Func<KeyValuePair<string, string>, bool> _filter;
-        protected Dictionary<string, string> _services;
+        protected List<KeyValuePair<string, string>> _services;
 
         public event WatcherHandler ServiceWatcher;
 
@@ -45,11 +45,7 @@ namespace rpcx.net.Client.ServiceDiscovery
 
         public IServiceDiscovery Clone(string servicePath) => new DNSDiscovery(_domain, _network, _port, _duration);
 
-        public Dictionary<string, string> GetServices()
-        {
-            lock (_services)
-                return _services;
-        }
+        public List<KeyValuePair<string, string>> GetServices() => _services;
 
         public void SetFilter(Func<KeyValuePair<string, string>, bool> filter) => _filter = filter;
 
@@ -62,15 +58,13 @@ namespace rpcx.net.Client.ServiceDiscovery
         protected void Lookup()
         {
             var ips = Dns.GetHostAddresses(_domain);
-            var svcs = ips.Select(ip => new KeyValuePair<string, string>($"{_network}@{ip}:{_port}", null))
-                          .Where(_filter)
-                          .OrderBy(kv => kv.Key)
-                          .ToDictionary(kv => kv.Key, kv => kv.Value);
+            var ss = ips.Select(ip => new KeyValuePair<string, string>($"{_network}@{ip}:{_port}", null));
+            ss = _filter is null ? ss : ss.Where(_filter);
+            var svcs = ss.OrderBy(kv => kv.Key)
+                         .ToList();
 
-            lock (_services)
-                _services = svcs;
-            lock (ServiceWatcher)
-                ServiceWatcher?.Invoke(this, svcs);
+            _services = svcs;
+            ServiceWatcher?.Invoke(this, svcs);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using rpcx.net.Shared.Codecs.Compressor;
 using rpcx.net.Shared.Codecs.Serializer;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,6 +52,49 @@ namespace rpcx.net.Shared
                         .Concat(v.LongLength.GetBigEndianBytes())
                         .Concat(v);
             }).Aggregate((a, b) => a.Concat(b)).ToArray();
+        }
+
+        public static string UrlEncode(this string s)
+        {
+            var sb = new StringBuilder();
+            var coder = Encoding.UTF8;
+
+            foreach(var c in s){
+                if (char.IsWhiteSpace(c))
+                    sb.Append('+');
+                else if (char.IsLetterOrDigit(c) || ".-*_".Contains(c))
+                    sb.Append(c);
+                else {
+                    foreach(var b in coder.GetBytes(new char[] { c }))
+                        sb.Append(string.Format("%{0:X2}", b));
+                }
+            }
+            return sb.ToString();
+        }
+
+        public static string UrlDecode(this string s)
+        {
+            var by = new List<byte>();
+            var coder = Encoding.UTF8;
+
+            var ss = s.GetEnumerator();
+            while(ss.MoveNext())
+            {
+                var c = ss.Current;
+                if (c.Equals('%'))
+                {
+                    if (!ss.MoveNext()) break;
+                    var high = ss.Current;
+                    if (!ss.MoveNext()) break;
+                    var low = ss.Current;
+                    by.Add(Convert.ToByte($"{high}{low}", 16));
+                }
+                else if (c.Equals("+"))
+                    by.Add((byte)' ');
+                else
+                    by.Add((byte)c);
+            }
+            return  coder.GetString(by.ToArray());
         }
     }
 }

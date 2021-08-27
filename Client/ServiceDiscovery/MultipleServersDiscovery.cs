@@ -5,16 +5,16 @@ namespace rpcx.net.Client.ServiceDiscovery
 {
     public class MultipleServersDiscovery : IServiceDiscovery
     {
-        protected Dictionary<string, string> _services;
+        protected List<KeyValuePair<string, string>> _services;
 
         public event WatcherHandler ServiceWatcher;
 
-        public MultipleServersDiscovery(Dictionary<string, string> services)
+        public MultipleServersDiscovery(List<KeyValuePair<string, string>> services)
         {
             _services = services;
         }
 
-        public void Update(Dictionary<string, string> services)
+        public void Update(List<KeyValuePair<string, string>> services)
         {
             lock (_services)
                 _services = services;
@@ -26,7 +26,7 @@ namespace rpcx.net.Client.ServiceDiscovery
 
         public void Close() { }
 
-        public Dictionary<string, string> GetServices() => _services;
+        public List<KeyValuePair<string, string>> GetServices() => _services;
 
         public void SetFilter(Func<KeyValuePair<string, string>, bool> filter) { }
     }

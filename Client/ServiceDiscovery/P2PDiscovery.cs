@@ -18,8 +18,8 @@ namespace rpcx.net.Client.ServiceDiscovery
 
         public IServiceDiscovery Clone(string servicePath) => this;
 
-        public Dictionary<string, string> GetServices() =>
-            new Dictionary<string, string>(1) { { _server, _metadata } };
+        public List<KeyValuePair<string, string>> GetServices() =>
+            new List<KeyValuePair<string, string>>(1) { new KeyValuePair<string, string> ( _server, _metadata) };
 
         public void SetFilter(Func<KeyValuePair<string, string>, bool> filter) { }
 

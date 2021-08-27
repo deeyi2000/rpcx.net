@@ -1,4 +1,5 @@
 ﻿using rpcx.net.Client;
+using rpcx.net.Client.ServiceDiscovery;
 using System;
 
 namespace examples

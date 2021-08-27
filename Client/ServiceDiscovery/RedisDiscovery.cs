@@ -18,7 +18,7 @@ namespace rpcx.net.Client.ServiceDiscovery
             throw new NotImplementedException();
         }
 
-        public Dictionary<string, string> GetServices()
+        public List<KeyValuePair<string, string>> GetServices()
         {
             throw new NotImplementedException();
         }
