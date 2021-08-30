@@ -33,9 +33,7 @@ namespace rpcx.net.Shared.Codecs
 
                 Dictionary<string, string> metadata = null;
                 if (0 != (nLen = buf.ReadInt()))
-                {
-                    buf.SetReaderIndex(buf.ReaderIndex + nLen);  //TODO: read Metadata
-                }
+                    metadata = DecodeMetadata(buf, nLen, Encoding.UTF8);
                 
                 byte[] payload = null;
                 if (0 != (nLen = buf.ReadInt()))
@@ -54,6 +52,23 @@ namespace rpcx.net.Shared.Codecs
                     Payload = payload,
                 });
             }
+        }
+
+        protected Dictionary<string, string> DecodeMetadata(IByteBuffer buf, int lenght, Encoding encoding)
+        {
+            var res = new Dictionary<string, string>(10);
+            var endIdx = buf.ReaderIndex + lenght;
+            int len;
+            string k, v;
+            while(endIdx > buf.ReaderIndex)
+            {
+                len = buf.ReadInt();
+                k = buf.ReadString(len, encoding);
+                len = buf.ReadInt();
+                v = buf.ReadString(len, encoding);
+                res.Add(k, v);
+            }
+            return res;
         }
     }
 }

@@ -5,6 +5,7 @@ using rpcx.net.Client.Generator;
 using rpcx.net.Shared.Codecs;
 using rpcx.net.Shared.Protocol;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -86,6 +87,7 @@ namespace rpcx.net.Client
             var msg = new Message(header) {
                 ServicePath = servicePath,
                 ServiceMethod = serviceMethod,
+                Metadata = args is WithMetadata a ? a._metadata : null,
                 Payload = GetSerializer(header.SerializeType).Serialize(args),
             };
 
@@ -117,7 +119,6 @@ namespace rpcx.net.Client
         {
             if(msg.Header.MessageStatusType == Header.eType.Error)
             {
-
             }
             if(msg.Header.MessageType == Header.eType.Request && !msg.Header.IsHeartbeat && msg.Header.IsOneWay)
             {
@@ -134,6 +135,8 @@ namespace rpcx.net.Client
                 else
                 {
                     var obj = GetSerializer(msg.Header.SerializeType).Deserialize(tcs.ResultType, msg.Payload);
+                    if (obj is WithMetadata o)
+                        o._metadata = msg.Metadata;
                     tcs.TrySetResult(obj);
                 }
             }

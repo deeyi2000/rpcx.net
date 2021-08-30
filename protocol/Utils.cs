@@ -29,31 +29,6 @@ namespace rpcx.net.Shared
         public static ICompressor GetCompressor(eType type) =>
             Compressors[((ushort)type & (ushort)eTypeMask.compressType) >> 10];
 
-        public static byte[] GetBigEndianBytes(this long l)
-        {
-            return new byte[]{
-                (byte)(l >> 24),
-                (byte)(l >> 16),
-                (byte)(l >> 8),
-                (byte)l,
-            };
-        }
-
-        public static byte[] GetBytes(this Dictionary<string, string> dic)
-        {
-            if (dic is null || dic.Count == 0) return new byte[] { };
-
-            return dic.Select(kv =>
-            {
-                var k = Encoding.UTF8.GetBytes(kv.Key);
-                var v = Encoding.UTF8.GetBytes(kv.Value);
-                return k.LongLength.GetBigEndianBytes()
-                        .Concat(k)
-                        .Concat(v.LongLength.GetBigEndianBytes())
-                        .Concat(v);
-            }).Aggregate((a, b) => a.Concat(b)).ToArray();
-        }
-
         public static string UrlEncode(this string s)
         {
             var sb = new StringBuilder();

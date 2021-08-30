@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Linq;
 using System.Timers;
+using System.Threading;
 
 namespace rpcx.net.Client.ServiceDiscovery
 {
@@ -12,7 +13,7 @@ namespace rpcx.net.Client.ServiceDiscovery
         protected string _network;
         protected int _port;
         protected double _duration;
-        protected Timer _watchTimer;
+        protected System.Timers.Timer _watchTimer;
         protected Func<KeyValuePair<string, string>, bool> _filter;
         protected List<KeyValuePair<string, string>> _services;
 
@@ -32,7 +33,7 @@ namespace rpcx.net.Client.ServiceDiscovery
         {
             if(_watchTimer is null)
             {
-                _watchTimer = new Timer()
+                _watchTimer = new System.Timers.Timer()
                 {
                     AutoReset = false,
                 };
@@ -47,7 +48,7 @@ namespace rpcx.net.Client.ServiceDiscovery
 
         public List<KeyValuePair<string, string>> GetServices() => _services;
 
-        public void SetFilter(Func<KeyValuePair<string, string>, bool> filter) => _filter = filter;
+        public void SetFilter(Func<KeyValuePair<string, string>, bool> filter) => Interlocked.Exchange(ref _filter, filter);
 
 
         public void Close()
@@ -63,7 +64,7 @@ namespace rpcx.net.Client.ServiceDiscovery
             var svcs = ss.OrderBy(kv => kv.Key)
                          .ToList();
 
-            _services = svcs;
+            Interlocked.Exchange(ref _services, svcs);
             ServiceWatcher?.Invoke(this, svcs);
         }
     }
