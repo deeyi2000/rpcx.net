@@ -77,7 +77,7 @@ namespace rpcx.net.Client
                     );
                 }));
             var addr = address.Split(new char[] { ':' });
-            _chan = bootstrap.ConnectAsync(addr[0], int.Parse(addr[1])).Result;
+            _chan = bootstrap.ConnectAsync(IPAddress.Parse(addr[0]), int.Parse(addr[1])).Result;
             return true;
         }
 

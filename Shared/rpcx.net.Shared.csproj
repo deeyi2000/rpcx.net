@@ -5,22 +5,22 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>0.0.1</Version>
     <Authors>deeyi</Authors>
-    <Description>A C# nativa rpcx client base on Dotty</Description>
-    <RepositoryUrl>https://github.com/deeyi2000/rpcx.net</RepositoryUrl>
+    <Description>Shared library for C# nativa rpcx client base on Dotty</Description>
     <PackageProjectUrl>https://github.com/deeyi2000/rpcx.net</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/deeyi2000/rpcx.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotNetty.Transport" Version="0.7.0" />
-    <PackageReference Include="Zeroconf" Version="3.5.11" />
+    <PackageReference Include="DotNetty.Handlers" Version="0.7.0" />
+    <PackageReference Include="MessagePack" Version="2.3.75" />
+    <PackageReference Include="protobuf-net" Version="3.0.101" />
+    <PackageReference Include="Snappy.Standard" Version="0.2.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Shared\rpcx.net.Shared.csproj" />
+  <ItemGroup Condition="'$(TargetFramework)' != 'net5'">
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\LICENSE">
       <Pack>True</Pack>

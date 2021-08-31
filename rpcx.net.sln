@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31613.86
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rpcx.net.Shared", "protocol\rpcx.net.Shared.csproj", "{EFCC0A04-63DA-48B4-9D1F-5CE68FE8CC54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rpcx.net.Shared", "Shared\rpcx.net.Shared.csproj", "{EFCC0A04-63DA-48B4-9D1F-5CE68FE8CC54}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rpcx.net.Client", "Client\rpcx.net.Client.csproj", "{062D948D-9BEF-4006-B826-DFC88F82418C}"
 EndProject
