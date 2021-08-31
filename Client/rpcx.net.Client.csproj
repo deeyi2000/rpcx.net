@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Consul" Version="1.6.10.3" />
     <PackageReference Include="DotNetty.Transport" Version="0.7.0" />
     <PackageReference Include="Zeroconf" Version="3.5.11" />
   </ItemGroup>
