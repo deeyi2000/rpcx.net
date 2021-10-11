@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetty.Handlers" Version="0.7.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.18.1" />
     <PackageReference Include="MessagePack" Version="2.3.75" />
     <PackageReference Include="protobuf-net" Version="3.0.101" />
     <PackageReference Include="Snappy.Standard" Version="0.2.0" />
