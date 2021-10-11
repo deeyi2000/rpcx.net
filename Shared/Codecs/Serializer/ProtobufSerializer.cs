@@ -16,8 +16,8 @@ namespace rpcx.net.Shared.Codecs.Serializer {
         public object Deserialize(Type type, ReadOnlyMemory<byte> bytes) {
             if (type.IsAssignableFrom(typeof(IMessage))) {
                 var msg = (IMessage)Activator.CreateInstance(type);
-
-                using (var ms = new MemoryStream())
+                
+                using (var ms = new MemoryStream(bytes.ToArray()))
                 using (var input = new CodedInputStream(ms)) {
                     msg.MergeFrom(input);
                 }
@@ -29,11 +29,7 @@ namespace rpcx.net.Shared.Codecs.Serializer {
 
         public byte[] Serialize(object value) {
             if (value is IMessage msg) {
-                using (var ms = new MemoryStream())
-                using (var output = new CodedOutputStream(ms)) {
-                    msg.WriteTo(output);
-                    return ms.ToArray();
-                }
+                return msg.ToByteArray();
             }
             throw new NotImplementedException();
         }
