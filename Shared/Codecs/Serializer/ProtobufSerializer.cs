@@ -1,6 +1,5 @@
 ﻿using Google.Protobuf;
 using System;
-using System.IO;
 
 namespace rpcx.net.Shared.Codecs.Serializer {
     public class ProtobufSerializer : ISerializer {
@@ -16,11 +15,7 @@ namespace rpcx.net.Shared.Codecs.Serializer {
         public object Deserialize(Type type, ReadOnlyMemory<byte> bytes) {
             if (type.IsAssignableFrom(typeof(IMessage))) {
                 var msg = (IMessage)Activator.CreateInstance(type);
-                
-                using (var ms = new MemoryStream(bytes.ToArray()))
-                using (var input = new CodedInputStream(ms)) {
-                    msg.MergeFrom(input);
-                }
+                msg.MergeFrom(bytes.ToArray());
 
                 return msg;
             }
