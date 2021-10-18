@@ -1,15 +1,16 @@
 ﻿using rpcx.net.Client;
+using rpcx.net.Shared.Protocol;
 using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
 namespace examples {
-    public class Args {
+    public class Args : WithMetadata {
         public long A { get; set; }
         public long B { get; set; }
     }
 
-    public class Reply {
+    public class Reply : WithMetadata {
         public long C { get; set; }
     }
 
@@ -24,25 +25,46 @@ namespace examples {
             using var clientCert = new X509Certificate2(pfx);
 
             var c = new Client(new Option() {
-                ClienetCert = clientCert, // 客户端证书
-                TargetHost = "01-matrix", // 如果同时客户端证书, 则该参数无效
-                Types = rpcx.net.Shared.Protocol.Header.eType.MessagePack, // | rpcx.net.Shared.Protocol.Header.eType.Gzip,
+                //ClienetCert = clientCert, // 客户端证书
+                // TargetHost = "01-matrix", // 如果同时客户端证书, 则该参数无效
+                Types = Header.eType.MessagePack, // | rpcx.net.Shared.Protocol.Header.eType.Gzip,
             });
 
             c.Connect("tcp", "127.0.0.1:8972");
             c.OnServerMessage += C_OnServerMessage;
 
             var ar = new Args() { A = 10, B = 20 };
-            var t1 = c.Go<Args, Reply>("Arith", "Mul", ar);
-            ar = new Args() { A = 3, B = 5 };
-            var t2 = c.Go<Args, Reply>("Arith", "Mul", ar);
-            ar = new Args() { A = 7, B = 8 };
-            var t3 = c.Go<Args, Reply>("Arith", "Mul", ar);
-            var r1 = t1.Result;
-            var r2 = t2.Result;
-            var r3 = t3.Result;
+            // Metadata
+            ar["ab"] = "1";
+            ar["cd"] = "2";
+            var t1 = c.Go<Args, Reply>("Arith", "Mul", ar).Result;
 
-            Console.ReadLine();
+            ar = new Args() { A = 3, B = 5 };
+            // Metadata
+            ar["cd"] = "3";
+            ar["ef"] = "4";
+            var t2 = c.Go<Args, Reply>("Arith", "Mul", ar).Result;
+
+            ar = new Args() { A = 7, B = 8 };
+            // Metadata
+            ar["gh"] = "5";
+            ar["ij"] = "6";
+            var t3 = c.Go<Args, Reply>("Arith", "Mul", ar).Result;
+
+            PrintReply(t1, t2, t3);
+
+            Console.WriteLine("Press Any Key to exit...");
+            Console.ReadKey();
+        }
+
+        private static void PrintReply(params Reply[] replies) {
+            foreach (var reply in replies) {
+                foreach (var k in reply) {
+                    Console.WriteLine($"Key={k.Key}, Value={k.Value}");
+                }
+                Console.WriteLine($"Reply={reply.C}");
+                Console.WriteLine();
+            }
         }
 
         private static void C_OnServerMessage(object sender, rpcx.net.Shared.Protocol.Message msg) {

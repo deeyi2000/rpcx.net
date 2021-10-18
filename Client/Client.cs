@@ -5,12 +5,10 @@ using DotNetty.Transport.Channels.Sockets;
 using rpcx.net.Client.Generator;
 using rpcx.net.Shared.Codecs;
 using rpcx.net.Shared.Protocol;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,6 +95,7 @@ namespace rpcx.net.Client {
 
         public async Task<TReply> Go<TArgs, TReply>(string servicePath, string serviceMethod, TArgs args, CancellationToken cancellationToken = default) {
             var header = Header.NewRequest(_option.Types);
+            
             var msg = new Message(header) {
                 ServicePath = servicePath,
                 ServiceMethod = serviceMethod,
