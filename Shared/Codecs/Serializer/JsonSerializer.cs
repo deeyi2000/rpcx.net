@@ -15,7 +15,7 @@ namespace rpcx.net.Shared.Codecs.Serializer {
             return Utf8Json.JsonSerializer.NonGeneric.Deserialize(type, bytes.ToArray());
         }
 
-
+        // https://michaelscodingspot.com/the-battle-of-c-to-json-serializers-in-net-core-3/
         // 替换成 Utf8Json 序列化
         // 因为 在序列化 Message WithMetadata 时, System.Text.Json 会崩溃
 

@@ -3,6 +3,7 @@ using DotNetty.Transport.Bootstrapping;
 using DotNetty.Transport.Channels;
 using DotNetty.Transport.Channels.Sockets;
 using rpcx.net.Client.Generator;
+using rpcx.net.Shared;
 using rpcx.net.Shared.Codecs;
 using rpcx.net.Shared.Protocol;
 using System.Collections.Concurrent;
@@ -93,18 +94,19 @@ namespace rpcx.net.Client {
             return true;
         }
 
-        public async Task<TReply> Go<TArgs, TReply>(string servicePath, string serviceMethod, TArgs args, CancellationToken cancellationToken = default) {
+        public async Task<TReply> Go<TArgs, TReply>(IContext ctx, string servicePath, string serviceMethod, TArgs args, CancellationToken cancellationToken = default) {
             var header = Header.NewRequest(_option.Types);
-            
+
             var msg = new Message(header) {
                 ServicePath = servicePath,
                 ServiceMethod = serviceMethod,
-                Metadata = args is WithMetadata a ? a._metadata : null,
+                Context = ctx,
                 Payload = GetSerializer(header.SerializeType).Serialize(args),
             };
 
             msg.Header.Seq = IdGen.Next();
-            var tcs = new TaskCompletionSource(typeof(TReply));
+            // 附加原始调用参数数据
+            var tcs = new TaskCompletionSource(typeof(TReply), msg);
             _pending.TryAdd(msg.Header.Seq, tcs);
             _ = _chan.WriteAndFlushAsync(msg);
             return (TReply)await tcs.Task.ConfigureAwait(false);
@@ -138,12 +140,34 @@ namespace rpcx.net.Client {
                     tcs.TrySetResult(msg.Payload);
                 } else {
                     var obj = GetSerializer(msg.Header.SerializeType).Deserialize(tcs.ResultType, msg.Payload);
-                    if (obj is WithMetadata o)
-                        o._metadata = msg.Metadata;
+            
+                    // 使用附加数据处理
+                    //if (obj is WithMetadata o)
+                    //    o._metadata = msg.Metadata;
+
+                    var msgCtx = msg.Context;
+                    if (msgCtx == null) {
+                        return;
+                    }
+                    var tcsMsg = tcs.Message;
+                    if (tcsMsg == null) {
+                        return;
+                    }
+                    var tcsCtx = tcsMsg.Context;
+                    if (tcsCtx == null) {
+                        return;
+                    }
+                    while (msgCtx != null) {
+                        var key = msgCtx.Key();
+                        tcsCtx.SetValue(key, msgCtx.Value(key));
+                        msgCtx = msgCtx.Parent();
+                    }
+
                     tcs.TrySetResult(obj);
                 }
             }
         }
+
         #endregion
     }
 }

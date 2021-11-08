@@ -6,19 +6,15 @@ using System.Collections.Generic;
 using System.Text;
 using static rpcx.net.Shared.Utils;
 
-namespace rpcx.net.Shared.Codecs
-{
-    public class RpcxMessageEncoder : MessageToByteEncoder<Message>
-    {
-        protected override void Encode(IChannelHandlerContext context, Message message, IByteBuffer output)
-        {
+namespace rpcx.net.Shared.Codecs {
+    public class RpcxMessageEncoder : MessageToByteEncoder<Message> {
+        protected override void Encode(IChannelHandlerContext context, Message message, IByteBuffer output) {
             var byHeader = message.Header.GetBytes();
             var byServicePath = Encoding.UTF8.GetBytes(message.ServicePath);
             var byServiceMethod = Encoding.UTF8.GetBytes(message.ServiceMethod);
             //var byMetadata = message.Metadata.GetBytes();
             var bufMetadata = context.Allocator.Buffer();
-            var nLenMetadata = EncodeMetadata(bufMetadata, message.Metadata, Encoding.UTF8);
-
+            var nLenMetadata = EncodeMetadata(bufMetadata, message.Context, Encoding.UTF8);
 
             var compressor = GetCompressor(message.Header.CompressType);
             var byPayload = compressor is null ? message.Payload : compressor.Zip(message.Payload);
@@ -37,13 +33,17 @@ namespace rpcx.net.Shared.Codecs
             output.WriteBytes(byPayload);
         }
 
-        protected int EncodeMetadata(IByteBuffer buf, Dictionary<string, string> metadata, Encoding encoding)
-        {
-            if (metadata is null) return 0;
+        protected int EncodeMetadata(IByteBuffer buf, IContext ctx, Encoding encoding) {
+            if (ctx == null) { return 0; }
+
+            // todo: 如果ReqMetaDataKey对应的类型不是IDictionary<string, string>, 应当怎样处理
+            var metadata = ctx.Value(Context.ReqMetaDataKey) as IDictionary<string, string>;
+            if (metadata == null) { return 0; }
+
             var startIdx = buf.WriterIndex;
+
             byte[] k, v;
-            foreach(var kv in metadata)
-            {
+            foreach (var kv in metadata) {
                 k = encoding.GetBytes(kv.Key);
                 v = encoding.GetBytes(kv.Value);
                 buf.WriteInt(k.Length);
