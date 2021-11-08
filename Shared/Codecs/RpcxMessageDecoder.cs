@@ -6,17 +6,13 @@ using System.Collections.Generic;
 using System.Text;
 using static rpcx.net.Shared.Utils;
 
-namespace rpcx.net.Shared.Codecs
-{
-    public class RpcxMessageDecoder : LengthFieldBasedFrameDecoder
-    {
+namespace rpcx.net.Shared.Codecs {
+    public class RpcxMessageDecoder : LengthFieldBasedFrameDecoder {
         public RpcxMessageDecoder(int maxFrameLength = 10240) :
             base(maxFrameLength, 12, 4) { }
 
-        protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output)
-        {
-            if (base.Decode(context, input) is IByteBuffer buf)
-            {
+        protected override void Decode(IChannelHandlerContext context, IByteBuffer input, List<object> output) {
+            if (base.Decode(context, input) is IByteBuffer buf) {
                 int nLen;
 
                 var byHeader = new byte[16];
@@ -34,10 +30,9 @@ namespace rpcx.net.Shared.Codecs
                 Dictionary<string, string> metadata = null;
                 if (0 != (nLen = buf.ReadInt()))
                     metadata = DecodeMetadata(buf, nLen, Encoding.UTF8);
-                
+
                 byte[] payload = null;
-                if (0 != (nLen = buf.ReadInt()))
-                {
+                if (0 != (nLen = buf.ReadInt())) {
                     payload = new byte[nLen];
                     buf.ReadBytes(payload, 0, nLen);
                     var compressor = GetCompressor(header.CompressType);
@@ -45,23 +40,26 @@ namespace rpcx.net.Shared.Codecs
                         payload = compressor.Unzip(payload);
                 }
 
-                output.Add(new Message(header) {
+                // 处理 Message
+                var msg = new Message(header) {
                     ServicePath = servicePath,
                     ServiceMethod = serviceMethod,
-                    Metadata = metadata,
                     Payload = payload,
-                });
+                };
+                // todo: 现在只处理 ResMetaDataKey, 以后可能会出现其他的上下文处理
+                if (metadata != null) {
+                    msg.Context = Context.WithValue(msg.Context, Context.ResMetaDataKey, metadata);
+                };
+                output.Add(msg);
             }
         }
 
-        protected Dictionary<string, string> DecodeMetadata(IByteBuffer buf, int lenght, Encoding encoding)
-        {
+        protected Dictionary<string, string> DecodeMetadata(IByteBuffer buf, int lenght, Encoding encoding) {
             var res = new Dictionary<string, string>(10);
             var endIdx = buf.ReaderIndex + lenght;
             int len;
             string k, v;
-            while(endIdx > buf.ReaderIndex)
-            {
+            while (endIdx > buf.ReaderIndex) {
                 len = buf.ReadInt();
                 k = buf.ReadString(len, encoding);
                 len = buf.ReadInt();
